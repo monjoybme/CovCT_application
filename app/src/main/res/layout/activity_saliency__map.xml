@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".Saliency_Map">
+
+    <ImageView
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:background="#CFE2FF"
+        android:id="@+id/saliency_map_imageview"
+        />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="80dp">
+
+    </LinearLayout>
+    <TextView
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="50dp"
+        android:text="Colour Changing Bar :"
+        android:textColor="#000"
+        />
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:progress="0"
+        android:max="80"
+        android:min="0"
+        android:layout_marginEnd="40dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="7dp"
+        />
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000"
+        android:text="No Gradient"
+        android:id="@+id/check_grad"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"
+        />
+
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Go Back"
+        android:background="@drawable/button_background"
+        android:layout_marginTop="15dp"
+        android:paddingHorizontal="20dp"
+        android:id="@+id/report_generate"/>
+
+    <TextView
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:text="Process : Generate Saliency Maps and Augment it on the image"
+        android:layout_marginTop="10dp"
+        android:id="@+id/textView"
+        android:textAlignment="center"/>
+
+
+
+</LinearLayout>
