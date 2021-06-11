@@ -1,43 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/linearlayout"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:background="@drawable/gradient_list"
     tools:context=".MainActivity">
 
-
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:id="@+id/linearlayout"
+        android:gravity="center"
+        android:background="@drawable/gradient_list"
+        >
         <ImageView
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:src="@drawable/logo_back_removed" />
-   <!-- android:text="GSoC-BMI-EMORY"-->
-    <TextView
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-        android:textColor="#3F3F3F"
-        android:textAlignment="center"
-        android:text="Sample CovCT"
-        />
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:src="@drawable/logo"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:fontFamily="@font/ubuntu_med"
+            android:text="CovCT App"
+            android:textColor="#19A066"
+            android:textSize="40dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GSoC 2021 Aspirant"
-        android:layout_marginTop="120dp"
-        />
+    </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Aryan Verma"
-        />
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/back_impression"
+        tools:layout_editor_absoluteX="149dp"
+        tools:layout_editor_absoluteY="272dp" />
 
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

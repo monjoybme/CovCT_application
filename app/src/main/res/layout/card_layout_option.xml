@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="#fff"
+        app:cardCornerRadius="15dp"
+        app:cardElevation="8dp"
+        app:cardMaxElevation="10dp"
+        app:cardPreventCornerOverlap="true"
+        app:cardUseCompatPadding="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="7dp"
+            android:weightSum="2.5">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="200dp"
+                android:layout_weight="1"
+                android:gravity="left"
+                >
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:id="@+id/option_image"
+                    android:background="#fff"
+                    android:scaleType="fitXY"
+                    android:layout_gravity="center_vertical"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="200dp"
+                android:layout_weight="1.5"
+                android:paddingHorizontal="7dp"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Lungs CT Analysis"
+                    android:textSize="18dp"
+                    android:id="@+id/option_text1"
+                    android:layout_marginBottom="15dp"
+                    android:textAlignment="viewEnd"
+                    android:layout_gravity="center_vertical"
+                    android:fontFamily="@font/ubuntu_med"
+                    android:textColor="#0D1761"
+                    tools:ignore="RtlCompat" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:textAlignment="viewEnd"
+                    android:paddingLeft="10dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Distinguish between Pneumonia and Covid-19 using Lungs CT Scan images"
+                    android:textColor="#027EB1"
+                    android:textSize="14dp"
+                    android:id="@+id/option_text2"
+                    tools:ignore="RtlCompat" />
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>

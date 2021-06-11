@@ -18,18 +18,18 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout linearLayout = findViewById(R.id.linearlayout);
         AnimationDrawable animationDrawable = (AnimationDrawable) linearLayout.getBackground();
-        animationDrawable.setEnterFadeDuration(1200);
-        animationDrawable.setExitFadeDuration(1200);
+        animationDrawable.setEnterFadeDuration(1400);
+        animationDrawable.setExitFadeDuration(1400);
         animationDrawable.start();
 
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent(MainActivity.this,Image_Upload.class);
+                Intent intent = new Intent(MainActivity.this,StoragePermission.class);
                 startActivity(intent);
                 finish();
             }
-        },2400);
+        },2800);
 
     }
 }

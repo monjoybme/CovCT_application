@@ -12,7 +12,11 @@
         android:largeHeap="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Saliency_Map"></activity>
+        <activity android:name=".HomeOptions" android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
+        <activity
+            android:name=".StoragePermission"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity android:name=".Saliency_Map" />
         <activity android:name=".Image_Upload" />
         <activity
             android:name=".MainActivity"
