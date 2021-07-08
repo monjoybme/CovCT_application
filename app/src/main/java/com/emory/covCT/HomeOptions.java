@@ -3,15 +3,20 @@ package com.emory.covCT;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+
+import com.emory.covCT.Adapters.ViewpagerAdapter;
 
 public class HomeOptions extends AppCompatActivity {
 
     ViewPager viewPager;
     ViewpagerAdapter viewPagerAdapter;
     Button  button;
+    ImageView moreOptiosn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -19,6 +24,8 @@ public class HomeOptions extends AppCompatActivity {
 
         viewPager = findViewById(R.id.viewpager);
         button = findViewById(R.id.button);
+        moreOptiosn = findViewById(R.id.imageView4);
+
         viewPagerAdapter = new ViewpagerAdapter(getSupportFragmentManager());
         viewPagerAdapter.add(new LoadAnalysePredictFragment());
         viewPagerAdapter.add(new OptionsFragment());
@@ -31,6 +38,13 @@ public class HomeOptions extends AppCompatActivity {
             public void onClick(View view) {
               viewPager.setCurrentItem(1);
 
+            }
+        });
+
+        moreOptiosn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(HomeOptions.this,MoreOptions.class));
             }
         });
 

@@ -14,7 +14,9 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.ColorSpace;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
@@ -44,8 +46,13 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.tensorflow.lite.Interpreter;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -63,6 +70,10 @@ public class Image_Upload extends AppCompatActivity {
     private TextView textView;
     private ProgressBar progressBar;
     private String covid,noncovid;
+    String TAG = "ImageUpload";
+
+    private Interpreter interpreter;
+    private Interpreter.Options options;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +81,59 @@ public class Image_Upload extends AppCompatActivity {
         setContentView(R.layout.activity_image__upload);
 
         initViews();
+        loadInitInterpreter();
+    }
+
+    private void loadInitInterpreter(){
+        try{
+            options = new Interpreter.Options();
+           /* CompatibilityList compatList = new CompatibilityList();
+
+            if(compatList.isDelegateSupportedOnThisDevice()){
+                // if the device has a supported GPU, add the GPU delegate
+                GpuDelegate.Options delegateOptions = compatList.getBestOptionsForThisDevice();
+                GpuDelegate gpuDelegate = new GpuDelegate(delegateOptions);
+                options.addDelegate(gpuDelegate);
+            } else {
+                // if the GPU is not supported, run on 4 threads*/
+                options.setNumThreads(4);
+          //  }
+
+            //Loading the model from the assets
+           // localModel = new FirebaseCustomRemoteModel.Builder("kjkjkj.dat").build();
+
+          /*  FirebaseModelManager.getInstance().getLatestModelFile(localModel)
+                    .addOnCompleteListener(new OnCompleteListener<File>() {
+                        @Override
+                        public void onComplete(@NonNull Task<File> task) {
+                            File modelFile = task.getResult();
+                            if (modelFile != null) {
+                                interpreter = new Interpreter(modelFile);
+                            } else {*/
+                                try {
+                                    /*File f = new File(getExternalCacheDir()+"/decrypted_model_u2_v3.dat");
+                                    InputStream inputStream = new FileInputStream(f);*/
+                                    InputStream inputStream = getAssets().open("converted_model_5fold_98_acc.tflite");
+                                    byte[] model = new byte[inputStream.available()];
+                                    inputStream.read(model);
+                                    ByteBuffer buffer = ByteBuffer.allocateDirect(model.length)
+                                            .order(ByteOrder.nativeOrder());
+                                    buffer.put(model);
+                                    interpreter = new Interpreter(buffer,options);
+                                    predict.setEnabled(true);
+
+                                    Log.e(TAG,"Interpreter Initialised !");
+                                    System.out.println("--------------"+interpreter.getInputTensorCount()+"");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                  /*          }
+                        }
+                    });*/
+
+        } catch (Exception ex){
+            ex.printStackTrace();
+        }
     }
 
     public void initViews(){
@@ -79,6 +143,8 @@ public class Image_Upload extends AppCompatActivity {
         textView = findViewById(R.id.textView);
         progressBar = findViewById(R.id.progress);
 
+        predict.setEnabled(false);
+
         //On Click listener for the Load button
         {
             load.setOnClickListener(new View.OnClickListener() {
@@ -87,7 +153,7 @@ public class Image_Upload extends AppCompatActivity {
                     if ((ContextCompat.checkSelfPermission(Image_Upload.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) || (ContextCompat.checkSelfPermission(Image_Upload.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
                         ActivityCompat.requestPermissions(Image_Upload.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 99);
                     } else {
-                        startActivityForResult(new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI), 111);
+                        startActivityForResult(new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI), 999);
                     }
                 }
             });
@@ -104,8 +170,6 @@ public class Image_Upload extends AppCompatActivity {
     }
 
     private void separateLungs(){
-        predict.setEnabled(false);
-        load.setEnabled(false);
         new Handler().post(new Runnable(){
             @Override
             public void run(){
@@ -113,6 +177,13 @@ public class Image_Upload extends AppCompatActivity {
 
                 BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
                 final Bitmap bmp = drawable.getBitmap();
+                if(bmp==null){
+                    Toast.makeText(Image_Upload.this, "No Image Selected !", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                predict.setEnabled(false);
+                load.setEnabled(false);
+                load.setVisibility(View.INVISIBLE);
                 final Bitmap bmp_test = Bitmap.createScaledBitmap(bmp, 512, 512, true);
 
                 final Mat test_mat =  new Mat();
@@ -207,7 +278,7 @@ public class Image_Upload extends AppCompatActivity {
                     @Override
                     public void run() {
                         imageView.setImageBitmap(final_cropped);
-                        getInference(bmp_test);
+                        getInferenceNeuralNet(bmp);
                     }
                 },4200);
 
@@ -229,6 +300,47 @@ public class Image_Upload extends AppCompatActivity {
 
     }
 
+    private void getInferenceNeuralNet(Bitmap bitmap){
+        Bitmap bmp_test = bitmap.copy(Bitmap.Config.ARGB_8888, false);
+        Log.d(TAG, "The size of incoming bitmap to inference genrating function : "+bitmap.getHeight()+ " width = "+bitmap.getWidth());
+       /* Mat test_mat = new Mat();
+        Utils.bitmapToMat(bmp_test, test_mat);*/
+
+        Bitmap finaul = Bitmap.createScaledBitmap(bmp_test, 512, 512, true);
+
+        //  progressBar.setProgress(35);
+
+        //Fitting the final bitmap to the model
+        ByteBuffer input = ByteBuffer.allocateDirect(4 * 512 * 512 * 1).order(ByteOrder.nativeOrder());
+
+
+        for (int y = 0; y < 512; y++) {
+            for (int x = 0; x < 512; x++) {
+                int px = finaul.getPixel(x, y);
+
+                // Get channel values from the pixel value.
+                float r = Color.red(px);
+
+                input.putFloat(r);
+            }
+        }
+
+
+        int bufferSize = 2 * java.lang.Float.SIZE / java.lang.Byte.SIZE;
+        ByteBuffer modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
+
+        //Finally running teh Inference of model
+        Log.d(TAG,"Model Input given");
+        interpreter.run(input, modelOutput);
+        Log.d(TAG,"Model output predicted");
+        modelOutput.rewind();
+        FloatBuffer probabilities = modelOutput.asFloatBuffer();
+
+        probabilities.rewind();
+
+        Log.d(TAG,"Probabilities came:"+probabilities.get(0));
+    }
+
     private void getInference(Bitmap bitmap){
         final ProgressDialog dialog = new ProgressDialog(Image_Upload.this);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -239,6 +351,7 @@ public class Image_Upload extends AppCompatActivity {
 
         predict.setVisibility(View.GONE);
         load.setVisibility(View.GONE);
+
         progressBar.setProgress(0);
         progressBar.setVisibility(View.VISIBLE);
 
@@ -289,12 +402,51 @@ public class Image_Upload extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode==111 && resultCode == Activity.RESULT_OK) {
+            BitmapFactory.Options opt = new BitmapFactory.Options();
+            opt.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
             Uri selectedImage = data.getData();
-            try {
-                imageView.setImageURI(selectedImage);
+           /* try {
+                InputStream is = getContentResolver().openInputStream(data.getData());
+                Log.d(TAG,"The size of Input stream : "+is.available());
+                Bitmap bmp = BitmapFactory.decodeStream(is,null,opt);
+                Log.d(TAG,"The height of bitmap : "+bmp.getHeight()+" the width :"+bmp.getWidth());
+
+                int[] pixels = new int[512*512];
+                bmp.getPixels(pixels,0,512,0,0,512,512);
+
+
+                Log.v(TAG,"The value at 351,245 :"+(pixels[324*512+512]&0x000ffff)+"  "+(pixels[323*512+512]&0x000ffff));
+               *//* int largest =0,px=0;
+                for (int i =0;i<bmp.getWidth();++i){
+                    int j=0;
+                    for (;j<bmp.getHeight();++j){
+                        px = bmp.getPixel(i,j)&0xBB8;
+                        if(px>largest){
+                            largest = px;
+                        }
+                    }
+                    Log.v(TAG,"The index at "+i+" and "+j+" is: "+px);
+                }
+                Log.v(TAG,"The largest valeu is :"+largest);*//*
+
+                //  imageView.setImageURI(selectedImage);
             } catch (Exception e) {
                 e.printStackTrace();
+            }*/
+          /*  try{
+                File file = new File(data.getData().getPath());
+                String selectedpath  = FileP
+                byte[] buff = new byte[(int)file.length()];
+
+                BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+                buf.read(buff,0,buff.length);
+                Log.d(TAG,"The size of bytes is :"+buff.length);
             }
+            catch (Exception e){
+              Log.d(TAG,e.getMessage());
+            }*/
+
         }
         else if(requestCode==999 && resultCode==Activity.RESULT_OK){
             Uri uri = data.getData();
