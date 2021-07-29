@@ -49,6 +49,7 @@ import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.Interpreter;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -65,12 +66,14 @@ import java.util.Map;
 
 public class Image_Upload extends AppCompatActivity {
 
-    private Button predict,load;
+    private Button predict,load, saliencymap_gen;
     private ImageView imageView;
     private TextView textView;
     private ProgressBar progressBar;
+    Bitmap bmp;
     private String covid,noncovid;
     String TAG = "ImageUpload";
+    ProgressDialog progressDialog;
 
     private Interpreter interpreter;
     private Interpreter.Options options;
@@ -142,12 +145,15 @@ public class Image_Upload extends AppCompatActivity {
         imageView = findViewById(R.id.uploaded_image);
         textView = findViewById(R.id.textView);
         progressBar = findViewById(R.id.progress);
+        saliencymap_gen = findViewById(R.id.saliency_map_gen);
 
         predict.setEnabled(false);
+        progressDialog = new ProgressDialog(Image_Upload.this);
+        progressDialog.setTitle("Running Segmentation !");
+
 
         //On Click listener for the Load button
-        {
-            load.setOnClickListener(new View.OnClickListener() {
+        load.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if ((ContextCompat.checkSelfPermission(Image_Upload.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) || (ContextCompat.checkSelfPermission(Image_Upload.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
@@ -157,42 +163,71 @@ public class Image_Upload extends AppCompatActivity {
                     }
                 }
             });
-        }
-        //On Click Listenerfor the predict button
 
-            predict.setOnClickListener(new View.OnClickListener() {
+        //On Click Listenerfor the predict button
+        predict.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                   separateLungs();
+                    imageView.invalidate();
+                    BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
+                    bmp = drawable.getBitmap();
+                    if(bmp==null){
+                        Toast.makeText(Image_Upload.this, "Please Upload Image !", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if(bmp.getWidth()==bmp.getHeight()) {
+                        progressDialog.show();
+                        predict.setEnabled(false);
+                        load.setEnabled(false);
+                        load.setVisibility(View.INVISIBLE);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                separateLungs(bmp);
+                            }
+                        }, 1000);
+
+                    }
+                    else{
+                        Toast.makeText(Image_Upload.this, "Image Not of Equal Dimensions !", Toast.LENGTH_LONG).show();
+                    }
                 }
             });
 
+        //On click listener for saliencymap button
+         saliencymap_gen.setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View view) {
+                 Intent intent = new Intent(Image_Upload.this,Saliency_Map.class );
+                 ByteArrayOutputStream strem = new ByteArrayOutputStream();
+                 bmp.compress(Bitmap.CompressFormat.PNG,100,strem);
+                 byte[] bytearray = strem.toByteArray();
+                 intent.putExtra("image",bytearray);
+               //  intent.putExtra("image",bmp);
+                 startActivity(intent);
+             }
+         });
+
     }
 
-    private void separateLungs(){
+    private void separateLungs(Bitmap bmp){
         new Handler().post(new Runnable(){
             @Override
             public void run(){
-                imageView.invalidate();
 
-                BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
-                final Bitmap bmp = drawable.getBitmap();
                 if(bmp==null){
                     Toast.makeText(Image_Upload.this, "No Image Selected !", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                predict.setEnabled(false);
-                load.setEnabled(false);
-                load.setVisibility(View.INVISIBLE);
+
                 final Bitmap bmp_test = Bitmap.createScaledBitmap(bmp, 512, 512, true);
 
                 final Mat test_mat =  new Mat();
                 Mat test_mat_copy = new Mat();
                 Mat final_mat = new Mat();
-
-
                 Mat thresh = new Mat();
                 Mat kernel = Mat.ones(new Size(3,3),CvType.CV_32S);
+                Mat kernel_s = Mat.ones(new Size(5,5),CvType.CV_32S);
                 Utils.bitmapToMat(bmp_test, test_mat);
                 Utils.bitmapToMat(bmp_test,test_mat_copy);
                 Utils.bitmapToMat(bmp_test,final_mat);
@@ -201,7 +236,9 @@ public class Image_Upload extends AppCompatActivity {
 
                 Imgproc.threshold(gray, thresh,0,255,Imgproc.THRESH_BINARY + Imgproc.THRESH_OTSU);
                 Imgproc.morphologyEx(thresh,thresh,Imgproc.MORPH_OPEN,kernel,new Point(0,0),1);
-                Imgproc.dilate(thresh,thresh,kernel,new Point(0,0),2);
+                Imgproc.dilate(thresh,thresh,kernel,new Point(2,2),1);
+                Imgproc.erode(thresh,thresh,kernel_s,new Point(3,3),1);
+                //Imgproc.dilate(thresh,thresh,kernel,new Point(0,0),2);
 
                 List<MatOfPoint> contours = new ArrayList<>();
                 final List<MatOfPoint> contours_sorted = new ArrayList<>();
@@ -210,78 +247,86 @@ public class Image_Upload extends AppCompatActivity {
 
                 for(int i=0;i<contours.size();++i){
                     double area = Imgproc.contourArea(contours.get(i));
-                    if(area>10000 && area<40000){
+                    if(area>10000 && area<70000){
                         contours_sorted.add(contours.get(i));
                     }
                 }
 
-                //Display image with vacant contour
-                Mat lungs = Mat.zeros(new Size(512,512),CvType.CV_32S);
-                Imgproc.drawContours(test_mat,contours_sorted,-1,new Scalar(0,255,0),3);
+                if(contours_sorted.size()>=1){
+                    progressDialog.cancel();
+                    //Display image with vacant contour
+                    Mat lungs = Mat.zeros(new Size(512,512),CvType.CV_32S);
+                    Imgproc.drawContours(test_mat,contours_sorted,-1,new Scalar(0,255,0),3);
 
-                final Bitmap final_ = Bitmap.createBitmap(test_mat.cols(), test_mat.rows(), Bitmap.Config.ARGB_8888);
+                    final Bitmap final_ = Bitmap.createBitmap(test_mat.cols(), test_mat.rows(), Bitmap.Config.ARGB_8888);
 
-                Utils.matToBitmap(test_mat, final_);
-                Toast.makeText(Image_Upload.this, "Contours detected for lungs!", Toast.LENGTH_SHORT).show();
-                imageView.setImageBitmap(final_);
+                    Utils.matToBitmap(test_mat, final_);
+                    Toast.makeText(Image_Upload.this, "Contours detected for lungs!", Toast.LENGTH_SHORT).show();
+                    imageView.setImageBitmap(final_);
 
-                //Display image with Filled contour
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Imgproc.drawContours(test_mat,contours_sorted,-1,new Scalar(0,255,0),-1);
+                    //Display image with Filled contour
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Imgproc.drawContours(test_mat,contours_sorted,-1,new Scalar(0,255,0),-1);
 
-                        Utils.matToBitmap(test_mat, final_);
-                        imageView.setImageBitmap(final_);
+                            Utils.matToBitmap(test_mat, final_);
+                            imageView.setImageBitmap(final_);
 
-                    }
-                },1500);
+                        }
+                    },1200);
 
-                //Segmenting the Lungs from the main image
-                Mat mask = Mat.zeros(new Size(512,512),CvType.CV_8U);
-                Imgproc.drawContours(mask,contours_sorted,-1,new Scalar(255),-1);
-                final Mat final_one = new Mat();
-                test_mat_copy.copyTo(final_one,mask);
+                    //Segmenting the Lungs from the main image
+                    Mat mask = Mat.zeros(new Size(512,512),CvType.CV_8U);
+                    Imgproc.drawContours(mask,contours_sorted,-1,new Scalar(255),-1);
+                    final Mat final_one = new Mat();
+                    test_mat_copy.copyTo(final_one,mask);
 
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(Image_Upload.this, "Lungs Segmented Successfully !", Toast.LENGTH_SHORT).show();
-                        Utils.matToBitmap(final_one, final_);
-                        imageView.setImageBitmap(final_);
-                    }
-                },3400);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(Image_Upload.this, "Lungs Segmented Successfully !", Toast.LENGTH_SHORT).show();
+                            Utils.matToBitmap(final_one, final_);
+                            imageView.setImageBitmap(final_);
+                        }
+                    },2200);
 
-                //Now to enlarge the Cropped region of segmented lungs
-                List<Integer> x = new ArrayList<>();
-                List<Integer> y = new ArrayList<>();
+                    //Now to enlarge the Cropped region of segmented lungs
+                    List<Integer> x = new ArrayList<>();
+                    List<Integer> y = new ArrayList<>();
 
-                for(int i=0;i<512;++i){
-                    for(int j=0;j<512;++j){
-                        if(mask.get(i,j)[0]==255){
-                            x.add(i);
-                            y.add(j);
+                    for(int i=0;i<512;++i){
+                        for(int j=0;j<512;++j){
+                            if(mask.get(i,j)[0]==255){
+                                x.add(i);
+                                y.add(j);
+                            }
                         }
                     }
+
+                    int topy = Collections.min(y);
+                    int topx = Collections.min(x);
+                    int bottomy = Collections.max(y);
+                    int bottomx = Collections.max(x);
+
+                    Mat sub = final_one.submat(topx,bottomx,topy,bottomy);
+                    final Bitmap final_cropped = Bitmap.createBitmap(sub.cols(), sub.rows(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(sub, final_cropped);
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            imageView.setImageBitmap(final_cropped);
+                            getInferenceNeuralNet(bmp);
+                        }
+                    },2000);
+
                 }
-
-                int topy = Collections.min(y);
-                int topx = Collections.min(x);
-                int bottomy = Collections.max(y);
-                int bottomx = Collections.max(x);
-
-                Mat sub = final_one.submat(topx,bottomx,topy,bottomy);
-                final Bitmap final_cropped = Bitmap.createBitmap(sub.cols(), sub.rows(), Bitmap.Config.ARGB_8888);
-                Utils.matToBitmap(sub, final_cropped);
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        imageView.setImageBitmap(final_cropped);
-                        getInferenceNeuralNet(bmp);
-                    }
-                },4200);
-
+                else{
+                    progressDialog.cancel();
+                    Toast.makeText(Image_Upload.this, "Lungs segmentation Unsuccessful !!", Toast.LENGTH_SHORT).show();
+                    getInferenceNeuralNet(bmp);
+                }
             }
         });
     }
@@ -301,51 +346,9 @@ public class Image_Upload extends AppCompatActivity {
     }
 
     private void getInferenceNeuralNet(Bitmap bitmap){
-        Bitmap bmp_test = bitmap.copy(Bitmap.Config.ARGB_8888, false);
-        Log.d(TAG, "The size of incoming bitmap to inference genrating function : "+bitmap.getHeight()+ " width = "+bitmap.getWidth());
-       /* Mat test_mat = new Mat();
-        Utils.bitmapToMat(bmp_test, test_mat);*/
-
-        Bitmap finaul = Bitmap.createScaledBitmap(bmp_test, 512, 512, true);
-
-        //  progressBar.setProgress(35);
-
-        //Fitting the final bitmap to the model
-        ByteBuffer input = ByteBuffer.allocateDirect(4 * 512 * 512 * 1).order(ByteOrder.nativeOrder());
-
-
-        for (int y = 0; y < 512; y++) {
-            for (int x = 0; x < 512; x++) {
-                int px = finaul.getPixel(x, y);
-
-                // Get channel values from the pixel value.
-                float r = Color.red(px);
-
-                input.putFloat(r);
-            }
-        }
-
-
-        int bufferSize = 2 * java.lang.Float.SIZE / java.lang.Byte.SIZE;
-        ByteBuffer modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
-
-        //Finally running teh Inference of model
-        Log.d(TAG,"Model Input given");
-        interpreter.run(input, modelOutput);
-        Log.d(TAG,"Model output predicted");
-        modelOutput.rewind();
-        FloatBuffer probabilities = modelOutput.asFloatBuffer();
-
-        probabilities.rewind();
-
-        Log.d(TAG,"Probabilities came:"+probabilities.get(0));
-    }
-
-    private void getInference(Bitmap bitmap){
         final ProgressDialog dialog = new ProgressDialog(Image_Upload.this);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         dialog.setTitle("Generating Inference");
-        dialog.setIndeterminate(true);
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
 
@@ -367,34 +370,56 @@ public class Image_Upload extends AppCompatActivity {
             @Override
             public void run() {
                 int a = progressBar.getProgress();
-                if(a<Integer.parseInt(covid)){
+                if(a<((int)Double.parseDouble(covid))){
                     progressBar.setProgress(a+1);
                     j.postDelayed(this,5);
                 }
                 else{
+                    dialog.cancel();
                     textView.setText("Results: Covid = "+covid+"\n         Non-Covid = "+noncovid);
+                    saliencymap_gen.setVisibility(View.VISIBLE);
                 }
             }
         };
+        Bitmap bmp_test = bitmap.copy(Bitmap.Config.ARGB_8888, false);
+       /* Mat test_mat = new Mat();
+        Utils.bitmapToMat(bmp_test, test_mat);*/
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                dialog.cancel();
-                Toast.makeText(Image_Upload.this, "Inference Generated !", Toast.LENGTH_SHORT).show();
+        Bitmap finaul = Bitmap.createScaledBitmap(bmp_test, 512, 512, true);
+
+        //  progressBar.setProgress(35);
+
+        //Fitting the final bitmap to the model
+        ByteBuffer input = ByteBuffer.allocateDirect(4 * 512 * 512 * 1).order(ByteOrder.nativeOrder());
+
+
+        for (int y = 0; y < 512; y++) {
+            for (int x = 0; x < 512; x++) {
+                int px = finaul.getPixel(x, y);
+
+                // Get channel values from the pixel value.
+                float r_temp = Color.red(px);
+
+                input.putFloat(r_temp);
+            }
+        }
+
+
+        int bufferSize = 2 * java.lang.Float.SIZE / java.lang.Byte.SIZE;
+        ByteBuffer modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
+
+        //Finally running teh Inference of model
+        interpreter.run(input, modelOutput);
+
+        Toast.makeText(Image_Upload.this, "Inference Generated !", Toast.LENGTH_SHORT).show();
+
+        modelOutput.rewind();
+        FloatBuffer probabilities = modelOutput.asFloatBuffer();
+
+        probabilities.rewind();
+        covid = (probabilities.get(0)*100)+"";
+        noncovid = (probabilities.get(1)*100)+"";
                 j.post(r);
-
-            }
-        },2400);
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-               Intent intent = new Intent(Image_Upload.this,Saliency_Map.class);
-               startActivity(intent);
-            }
-        },5000);
-
     }
 
     @Override
@@ -450,7 +475,6 @@ public class Image_Upload extends AppCompatActivity {
         }
         else if(requestCode==999 && resultCode==Activity.RESULT_OK){
             Uri uri = data.getData();
-            Toast.makeText(Image_Upload.this,"Got uri:"+uri,Toast.LENGTH_SHORT).show();
             imageView.setImageURI(uri);
         }
     }
@@ -476,10 +500,11 @@ public class Image_Upload extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         if(!OpenCVLoader.initDebug()){
-            Log.e("FFF","Opencv not loaded!!!");
         }
         else{
-            Log.d("FFF","OpenCV Loaded Successfully !!");
+            Log.e("FFF","OpenCV Loaded Successfully !!");
         }
     }
+
+
 }

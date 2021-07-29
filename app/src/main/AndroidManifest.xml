@@ -12,7 +12,10 @@
         android:largeHeap="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".HomeOptions" android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
+        <activity android:name=".MoreOptions" android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
+        <activity
+            android:name=".HomeOptions"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".StoragePermission"
             android:theme="@style/Theme.AppCompat.NoActionBar" />

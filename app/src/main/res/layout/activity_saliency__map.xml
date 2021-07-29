@@ -54,11 +54,45 @@
     <Button
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="Go Back"
-        android:background="@drawable/button_background"
+        android:text="Generate HeatMap"
+        android:fontFamily="@font/ubuntu_med"
+        android:background="@drawable/main_button"
         android:layout_marginTop="15dp"
+        android:textColor="#fff"
         android:paddingHorizontal="20dp"
         android:id="@+id/report_generate"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="2"
+        android:visibility="gone"
+        android:id="@+id/second_linear"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="20dp"
+        >
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:fontFamily="@font/ubuntu_med"
+            android:layout_marginRight="7dp"
+            android:textColor="#fff"
+            android:background="@drawable/main_button"
+            android:paddingHorizontal="20dp"
+            android:id="@+id/save_saliency"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="7dp"
+            android:layout_height="wrap_content"
+            android:text="Home"
+            android:fontFamily="@font/ubuntu_med"
+            android:background="@drawable/button_background_border"
+            android:paddingHorizontal="20dp"
+            android:id="@+id/return_tohome"/>
+    </LinearLayout>
 
     <TextView
         android:layout_width="250dp"
