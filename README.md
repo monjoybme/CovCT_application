@@ -44,7 +44,7 @@ Deep Neural Networks to detect COVID-19 from Chest CT Scans and further generate
     <li><b>Nd4j Scientific Computing Library for JVM along with OpenCV JAVA</b> for Heavy Image processing Tasks and handling N-Dimensional arrays while generating Heatmaps.
  <li><b>Keras library with Tensorflow</b> backend for the creation
     of deep learning model to detect Covid-19 in Chest CT Images.
-<li>Python Scripting on Google Colab (Jupyter Notebook)
+<li>Python Scripting on Google Colab/Jupyter Notebook
     for the model to be trained. And integration of the <b>.tflite</b> file 
     which reduces the size of AI model and hence the app.
 <li>Numpy and Pandas Libraries for ease of Model Training
