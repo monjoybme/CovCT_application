@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<font-family xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Code designed and Written by : ARYAN VERMA
+                                       GSOC (Google Summer of Code 2021)
+        Mail :                         aryanverma19oct@gmail.com
+    -->
+    <font android:fontWeight="400"
+        android:font="@font/ubuntu_med"
+        android:fontStyle="normal"/>
+
+</font-family>

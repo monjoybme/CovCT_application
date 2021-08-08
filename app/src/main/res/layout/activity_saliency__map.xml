@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".Saliency_Map">
+    <!-- Code designed and Written by : ARYAN VERMA
+                                       GSOC (Google Summer of Code 2021)
+        Mail :                         aryanverma19oct@gmail.com
+    -->
+
+    <ImageView
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:background="#CFE2FF"
+        android:id="@+id/saliency_map_imageview"
+        />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="80dp">
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="50dp"
+        android:layout_marginTop="10dp"
+        android:text="Colour Changing Bar :"
+        android:textColor="#000" />
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:progress="0"
+        android:max="80"
+        android:min="0"
+        android:layout_marginEnd="40dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="7dp"
+        />
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000"
+        android:text="Segmented Lungs"
+        android:id="@+id/check_grad"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"
+        />
+
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Generate HeatMap"
+        android:fontFamily="@font/ubuntu_med"
+        android:background="@drawable/main_button"
+        android:layout_marginTop="15dp"
+        android:textColor="#fff"
+        android:paddingHorizontal="20dp"
+        android:id="@+id/report_generate"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="2"
+        android:visibility="gone"
+        android:id="@+id/second_linear"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="20dp"
+        >
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:fontFamily="@font/ubuntu_med"
+            android:layout_marginRight="7dp"
+            android:textColor="#fff"
+            android:background="@drawable/main_button"
+            android:paddingHorizontal="20dp"
+            android:id="@+id/save_saliency"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="7dp"
+            android:layout_height="wrap_content"
+            android:text="Home"
+            android:fontFamily="@font/ubuntu_med"
+            android:background="@drawable/button_background_border"
+            android:paddingHorizontal="20dp"
+            android:id="@+id/return_tohome"/>
+    </LinearLayout>
+
+
+    <TextView
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:text="Process : Generate Saliency Maps and Augment it on the image"
+        android:layout_marginTop="10dp"
+        android:id="@+id/textView"
+        android:textAlignment="center"/>
+
+
+
+</LinearLayout>

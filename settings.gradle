@@ -1,0 +1,3 @@
+include ':app'
+rootProject.name='CovCT'
+include ':openCVLibrary349'
