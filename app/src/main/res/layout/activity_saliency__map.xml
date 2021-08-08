@@ -7,6 +7,10 @@
     android:orientation="vertical"
     android:gravity="center"
     tools:context=".Saliency_Map">
+    <!-- Code designed and Written by : ARYAN VERMA
+                                       GSOC (Google Summer of Code 2021)
+        Mail :                         aryanverma19oct@gmail.com
+    -->
 
     <ImageView
         android:layout_width="300dp"
@@ -46,7 +50,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#000"
-        android:text="No Gradient"
+        android:text="Segmented Lungs"
         android:id="@+id/check_grad"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="30dp"
@@ -94,28 +98,7 @@
             android:paddingHorizontal="20dp"
             android:id="@+id/return_tohome"/>
     </LinearLayout>
-    <Button
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="Upload"
-        android:fontFamily="@font/ubuntu_med"
-        android:background="@drawable/main_button"
-        android:layout_marginTop="15dp"
-        android:visibility="gone"
-        android:textColor="#fff"
-        android:paddingHorizontal="20dp"
-        android:id="@+id/select"/>
-    <Button
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="Convert to byte"
-        android:fontFamily="@font/ubuntu_med"
-        android:visibility="gone"
-        android:background="@drawable/main_button"
-        android:layout_marginTop="15dp"
-        android:textColor="#fff"
-        android:paddingHorizontal="20dp"
-        android:id="@+id/bytes"/>
+
 
     <TextView
         android:layout_width="250dp"

@@ -13,7 +13,8 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -25,6 +26,39 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/INDEX.LIST'
+    }
+
+   /* splits {
+        // Configures multiple APKs based on ABI.
+        abi {
+
+            // Enables building multiple APKs per ABI.
+            enable true
+
+            // By default all ABIs are included, so use reset() and include
+            // to specify that we only want APKs for x86, armeabi-v7a, and mips.
+
+            // Resets the list of ABIs that Gradle should create APKs for to none.
+            reset()
+
+            // Specifies a list of ABIs that Gradle should create APKs for.
+            include "x86", "arm64-v8a", "armeabi-v7a"
+
+            // Specifies that we do not want to generate a universal APK
+            // that includes all ABIs.
+            universalApk false
+        }
+    }*/
 }
 
 dependencies {
@@ -36,6 +70,18 @@ dependencies {
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+
+    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta4'
+    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta4', classifier: "android-arm"
+    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta4', classifier: "android-arm64"
+    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta4', classifier: "android-x86"
+    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta4', classifier: "android-x86_64"
+
+    implementation group: 'org.bytedeco', name: 'openblas', version: '0.3.5-1.5'
+    implementation group: 'org.bytedeco', name: 'openblas', version: '0.3.5-1.5', classifier: "android-arm"
+    implementation group: 'org.bytedeco', name: 'openblas', version: '0.3.5-1.5', classifier: "android-arm64"
+    implementation group: 'org.bytedeco', name: 'openblas', version: '0.3.5-1.5', classifier: "android-x86"
+    implementation group: 'org.bytedeco', name: 'openblas', version: '0.3.5-1.5', classifier: "android-x86_64"
 
 
     implementation platform('com.google.firebase:firebase-bom:26.2.0')
@@ -55,5 +101,6 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.android.support:design:27.0.0'
 
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.3.0'
 
 }

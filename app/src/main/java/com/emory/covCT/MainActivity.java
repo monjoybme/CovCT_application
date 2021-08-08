@@ -9,7 +9,11 @@ import android.os.Handler;
 import android.widget.LinearLayout;
 
 public class MainActivity extends AppCompatActivity {
-
+    /*
+    Code designed and Written by : ARYAN VERMA
+                                   GSOC (Google Summer of Code 2021)
+    Mail :                         aryanverma19oct@gmail.com
+    */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -11,6 +11,11 @@ import android.widget.ImageView;
 
 import com.emory.covCT.Adapters.ViewpagerAdapter;
 
+/*
+Code designed and Written by : ARYAN VERMA
+                               GSOC (Google Summer of Code 2021)
+Mail :                         aryanverma19oct@gmail.com
+*/
 public class HomeOptions extends AppCompatActivity {
 
     ViewPager viewPager;
@@ -33,20 +38,9 @@ public class HomeOptions extends AppCompatActivity {
         viewPager.setAdapter(viewPagerAdapter);
 
 
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-              viewPager.setCurrentItem(1);
+        button.setOnClickListener(view -> viewPager.setCurrentItem(1));
 
-            }
-        });
-
-        moreOptiosn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(HomeOptions.this,MoreOptions.class));
-            }
-        });
+        moreOptiosn.setOnClickListener(view -> startActivity(new Intent(HomeOptions.this,MoreOptions.class)));
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override

@@ -7,6 +7,12 @@
     android:layout_height="match_parent"
     tools:context=".MoreOptions">
 
+
+   <!-- Code designed and Written by : ARYAN VERMA
+                                       GSOC (Google Summer of Code 2021)
+        Mail :                         aryanverma19oct@gmail.com
+    -->
+
     <ImageView
         android:id="@+id/imageView3"
         android:layout_width="150dp"
@@ -54,19 +60,6 @@
         app:layout_constraintTop_toBottomOf="@+id/share" />
 
     <View
-        android:id="@+id/view2"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="20dp"
-        android:background="#4DF3F3F3"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/moreapp" />
-
-    <View
         android:id="@+id/view4"
         android:layout_width="match_parent"
         android:layout_height="2dp"
@@ -80,19 +73,6 @@
         app:layout_constraintTop_toBottomOf="@+id/rateNow" />
 
     <TextView
-        android:id="@+id/moreapp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:fontFamily="@font/ubuntu_med"
-        android:text="- BMI Emory University"
-        android:textColor="#F3F3F3"
-        android:textSize="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view" />
-
-    <TextView
         android:id="@+id/rateNow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -103,20 +83,7 @@
         android:textColor="#F3F3F3"
         android:textSize="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view2" />
-
-    <TextView
-        android:id="@+id/privacy_policy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:fontFamily="@font/ubuntu_med"
-        android:text="- Privacy Policy"
-        android:textColor="#F3F3F3"
-        android:textSize="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view4" />
+        app:layout_constraintTop_toBottomOf="@+id/view" />
 
 
     <TextView
@@ -130,27 +97,15 @@
         android:textColor="#F3F3F3"
         android:textSize="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view5" />
+        app:layout_constraintTop_toBottomOf="@+id/view4" />
 
-    <View
-        android:id="@+id/view5"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="20dp"
-        android:background="#4DF3F3F3"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/privacy_policy" />
     <TextView
         android:id="@+id/textView12"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="40dp"
         android:fontFamily="@font/ubuntu_med"
-        android:text="\u00a9 Department of Bioinformatics\nAll Rights Reserved"
+        android:text="\u00a9 Developed by Aryan Verma\nGSoC 2021 project"
         android:textAlignment="center"
         android:textColor="#929BB2"
         android:textSize="14dp"

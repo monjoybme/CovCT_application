@@ -1,19 +1,23 @@
 package com.emory.covCT;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
-
+/*
+Code designed and Written by : ARYAN VERMA
+                               GSOC (Google Summer of Code 2021)
+Mail :                         aryanverma19oct@gmail.com
+*/
 public class StoragePermission extends AppCompatActivity {
 
     Button storage_permit;
@@ -39,19 +43,9 @@ public class StoragePermission extends AppCompatActivity {
         storage_permit = findViewById(R.id.storage);
         text_skip = findViewById(R.id.skip_text);
 
-        storage_permit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ActivityCompat.requestPermissions(StoragePermission.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},102);
-            }
-        });
+        storage_permit.setOnClickListener(view -> ActivityCompat.requestPermissions(StoragePermission.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},102));
 
-        text_skip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(StoragePermission.this,HomeOptions.class));
-            }
-        });
+        text_skip.setOnClickListener(view -> startActivity(new Intent(StoragePermission.this,HomeOptions.class)));
 
     }
 

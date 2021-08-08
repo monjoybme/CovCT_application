@@ -1,5 +1,11 @@
 package com.emory.covCT;
 
+
+/*
+Code designed and Written by : ARYAN VERMA
+                               GSOC (Google Summer of Code 2021)
+Mail :                         aryanverma19oct@gmail.com
+*/
 public class OptionModal {
     int image;
     String title;

@@ -17,6 +17,11 @@ import com.emory.covCT.R;
 
 import java.util.ArrayList;
 
+/*
+Code designed and Written by : ARYAN VERMA
+                               GSOC (Google Summer of Code 2021)
+Mail :                         aryanverma19oct@gmail.com
+*/
 public class RecyclerOptionAdapter extends RecyclerView.Adapter<RecyclerOptionAdapter.Viewholder> {
 
     private Context context;

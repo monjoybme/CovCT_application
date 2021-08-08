@@ -51,24 +51,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+
+/*
+Code designed and Written by : ARYAN VERMA
+                               GSOC (Google Summer of Code 2021)
+Mail :                         aryanverma19oct@gmail.com
+*/
 public class Saliency_Map extends AppCompatActivity {
 
     ImageView saliency_imae;
     Button generate, save, home;
     SeekBar bar ;
     TextView label;
-    Bitmap original, mixed_bit;
+    Bitmap original, mixed_bit, heatmap;
     CheckBox chech_grad;
     ProgressDialog progressDialog,dialog1;
     String TAG ="Saliency";
     LinearLayout buttons;
+    String filename;
     Mat mask;
     int[] coordinates = new int[4];
     boolean run=true;
     float[] rawActivations, input_image;
     int ts1=0,ts2=0,ts3=0,ts4=0, ts5=0,ts6=0,ts7=0,ts8=0;
     private Interpreter interpreter,interpreter2,interpreter3,interpreter4, interpreter5, interpreter6, interpreter7, interpreter8, interpreter_saliency;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,14 +83,12 @@ public class Saliency_Map extends AppCompatActivity {
 
         loadInitInterpreter();
 
-
         //Dialog for Bitmap and other recievings from previous activity
         final ProgressDialog dialog = new ProgressDialog(Saliency_Map.this);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        dialog.setTitle("Getting Params !");
+        dialog.setTitle("Please wait !");
         dialog.setIndeterminate(true);
         dialog.setCanceledOnTouchOutside(false);
-
 
         //dialog for saliency operations
         dialog1 = new ProgressDialog(Saliency_Map.this);
@@ -94,13 +98,11 @@ public class Saliency_Map extends AppCompatActivity {
         //dialog1.show();
         dialog1.setCancelable(false);
 
-
         //Dialog for saving images
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Saving Imposed Heatmap !");
         progressDialog.setCancelable(false);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-
 
         mask = new Mat(512,512,CvType.CV_8U);
         getBitmap();
@@ -118,6 +120,84 @@ public class Saliency_Map extends AppCompatActivity {
         label.setVisibility(View.GONE);
         bar.setVisibility(View.GONE);
         chech_grad.setVisibility(View.GONE);
+
+
+        Handler showmat = new Handler(Looper.getMainLooper());
+        Runnable showit = () -> {
+            if(dialog.isShowing()){
+                dialog.cancel();
+            }
+            saliency_imae.setImageBitmap(mixed_bit);
+            Toast.makeText(this, "Imposed Heatmap !", Toast.LENGTH_SHORT).show();
+            handleFurtherTask();
+        };
+
+        chech_grad.setOnCheckedChangeListener((compoundButton, b) -> {
+            Log.d(TAG, "Changed with value "+b );
+            if(b){
+                if(mask==null){
+                    Toast.makeText(Saliency_Map.this, "Can't Segment Lungs!", Toast.LENGTH_SHORT).show();
+                    chech_grad.setChecked(false);
+                }
+                else{
+                    Mat heat_small = new Mat(16,16,CvType.CV_32F);
+                    Utils.bitmapToMat(heatmap,heat_small);
+                    //  heatmap.recycle();
+                    Log.d(TAG, " Generated heatmap to mat");
+
+                    Mat heat = new Mat(512,512,CvType.CV_32F);
+                    Imgproc.resize(heat_small,heat,new Size(512,512));
+                    //  heat_small.release();
+
+                    Mat original_lung = new Mat(512,512, CvType.CV_32F);
+                    Utils.bitmapToMat(original,original_lung);
+                    // original.recycle();
+
+                    Mat maksed_heat = new Mat(512,512, CvType.CV_32F);
+                    heat.copyTo(maksed_heat,mask);
+                    //  heat.release();
+
+                    Mat maksed_original = new Mat(512,512, CvType.CV_32F);
+                    original_lung.copyTo(maksed_original,mask);
+                    //original_lung.release();
+                    //  mask.release();
+
+                    Mat mixed = new Mat(512,512,CvType.CV_32F);
+
+                    Core.addWeighted(maksed_original,1.2,maksed_heat,0.5,0,mixed);
+
+                    Mat sub = mixed.submat(coordinates[0],coordinates[2],coordinates[1],coordinates[3]);
+                    mixed_bit = Bitmap.createBitmap(sub.cols(), sub.rows(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(sub,mixed_bit);
+                    dialog.show();
+
+                    showmat.postDelayed(showit,1500);
+                }
+            }
+            else{
+                Mat heat_small = new Mat(16,16,CvType.CV_32F);
+                Utils.bitmapToMat(heatmap,heat_small);
+                //  heatmap.recycle();
+                Mat heat = new Mat(512,512,CvType.CV_32F);
+                Imgproc.resize(heat_small,heat,new Size(512,512));
+                //  heat_small.release();
+
+                Mat original_lung = new Mat(512,512, CvType.CV_32F);
+                Utils.bitmapToMat(original,original_lung);
+                // original.recycle();
+                //  mask.release();
+
+                Mat mixed = new Mat(512,512,CvType.CV_32F);
+                Core.addWeighted(original_lung,1.2,heat,0.5,0,mixed);
+
+                //  Mat sub = mixed.submat(coordinates[0],coordinates[2],coordinates[1],coordinates[3]);
+                mixed_bit = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(mixed,mixed_bit);
+
+                dialog.show();
+                showmat.postDelayed(showit,1000);
+            }
+        });
 
         generate.setOnClickListener(view -> {
             generate.setEnabled(false);
@@ -152,37 +232,6 @@ public class Saliency_Map extends AppCompatActivity {
 
     }
 
-    public void setHue(int hue){
-        Bitmap bmp32 = mixed_bit.copy(Bitmap.Config.ARGB_8888, true);
-        Mat mat = new Mat();
-        Mat hsv = new Mat();
-        Utils.bitmapToMat(bmp32, mat);
-        Imgproc.cvtColor(mat, hsv, Imgproc.COLOR_BGR2HSV);
-        List<Mat> hsvlist = new ArrayList<>();
-        Core.split(hsv,hsvlist);
-
-        Mat hue_channel = hsvlist.get(0);
-
-        if(chech_grad.isChecked()){
-            hue_channel.setTo(new Scalar(hue));
-        }
-        else{
-            Core.add(hue_channel,new Scalar(hue),hue_channel);
-
-        }
-
-        List<Mat> new_hsvlist = new ArrayList<>();
-        new_hsvlist.add(hue_channel);
-        new_hsvlist.add(hsvlist.get(1));
-        new_hsvlist.add(hsvlist.get(2));
-
-        Core.merge(new_hsvlist,mat);
-        Imgproc.cvtColor(mat,mat,Imgproc.COLOR_HSV2BGR);
-
-        Utils.matToBitmap(mat,bmp32);
-        saliency_imae.setImageBitmap(bmp32);
-    }
-
     public void getBitmap(){
         Thread t = new Thread(() -> {
             if(getIntent().hasExtra("image")){
@@ -211,71 +260,12 @@ public class Saliency_Map extends AppCompatActivity {
                     }
                 }
             }
+            if(getIntent().hasExtra("filename")){
+                filename = getIntent().getStringExtra("filename");
+            }
 
         });
         t.start();
-    }
-
-    public void handleFurtherTask(){
-        label.setVisibility(View.VISIBLE);
-        bar.setVisibility(View.VISIBLE);
-        chech_grad.setVisibility(View.VISIBLE);
-        buttons.setVisibility(View.VISIBLE);
-        generate.setVisibility(View.GONE);
-
-    }
-
-    private void saveImage(){
-        if(ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED){
-          progressDialog.show();
-            try{
-                BitmapDrawable draw = (BitmapDrawable) saliency_imae.getDrawable();
-                Bitmap bitmap = draw.getBitmap();
-                File sdCard = Environment.getExternalStorageDirectory();
-                File dir = new File(sdCard.getAbsolutePath() + "/covct_heatmaps");
-                if(!dir.exists()){
-                    dir.mkdir();
-                }
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.cancel();
-                        if(dir.exists()){
-                            try{
-                                String fileName = String.format("%d.jpg", System.currentTimeMillis());
-                                File outFile = new File(dir, fileName);
-                                if (outFile.exists())
-                                    outFile.delete();
-                                FileOutputStream outStream = new FileOutputStream(outFile);
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
-                                outStream.flush();
-                                outStream.close();
-                                Toast.makeText(Saliency_Map.this, "Saved in Gallery !", Toast.LENGTH_LONG).show();
-                                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                                intent.setData(Uri.fromFile(outFile));
-                                sendBroadcast(intent);
-                            }
-                            catch (Exception e){
-                                Toast.makeText(Saliency_Map.this, "in"+e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                        else{
-                            Toast.makeText(Saliency_Map.this, "Please try again!", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                },3000);
-            }
-            catch (Exception e){
-                if(progressDialog.isShowing()){
-                    progressDialog.cancel();
-                }
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-
-        }
-        else{
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},2011);
-        }
     }
 
     private void loadInitInterpreter(){
@@ -620,13 +610,6 @@ public class Saliency_Map extends AppCompatActivity {
         t7.start();
         t8.start();
 
-        Handler showmat = new Handler(Looper.getMainLooper());
-        Runnable showit = () -> {
-            saliency_imae.setImageBitmap(mixed_bit);
-            Toast.makeText(this, "Imposed Heatmap !", Toast.LENGTH_SHORT).show();
-            handleFurtherTask();
-        };
-
        Handler afterProcess = new Handler(Looper.getMainLooper());
        Runnable afterProcessRunnable = () -> {
            if(run){
@@ -643,62 +626,16 @@ public class Saliency_Map extends AppCompatActivity {
                }
 
                float[] normalized = normalizeFloat(weighted_map);
-               Bitmap heatmap = generateHeatmap(normalized);
+                heatmap = generateHeatmap(normalized);
                Log.d(TAG, "Heatmap generated finally :"+heatmap.getWidth()+" "+heatmap.getHeight());
                saliency_imae.setImageBitmap(heatmap);
+
                if(mask!=null){
-                   Mat heat_small = new Mat(16,16,CvType.CV_32F);
-                   Utils.bitmapToMat(heatmap,heat_small);
-                 //  heatmap.recycle();
-                   Log.d(TAG, " Generated heatmap to mat");
-
-                   Mat heat = new Mat(512,512,CvType.CV_32F);
-                   Imgproc.resize(heat_small,heat,new Size(512,512));
-                 //  heat_small.release();
-
-                   Mat original_lung = new Mat(512,512, CvType.CV_32F);
-                   Utils.bitmapToMat(original,original_lung);
-                  // original.recycle();
-
-                   Mat maksed_heat = new Mat(512,512, CvType.CV_32F);
-                   heat.copyTo(maksed_heat,mask);
-                 //  heat.release();
-
-                   Mat maksed_original = new Mat(512,512, CvType.CV_32F);
-                   original_lung.copyTo(maksed_original,mask);
-                   //original_lung.release();
-                 //  mask.release();
-
-                   Mat mixed = new Mat(512,512,CvType.CV_32F);
-                   Core.addWeighted(maksed_original,1.2,maksed_heat,0.5,0,mixed);
-
-                   Mat sub = mixed.submat(coordinates[0],coordinates[2],coordinates[1],coordinates[3]);
-                   mixed_bit = Bitmap.createBitmap(sub.cols(), sub.rows(), Bitmap.Config.ARGB_8888);
-                   Utils.matToBitmap(sub,mixed_bit);
-
-                   showmat.postDelayed(showit,1500);
+                   chech_grad.setChecked(true);
                }
                else{
-                   Mat heat_small = new Mat(16,16,CvType.CV_32F);
-                   Utils.bitmapToMat(heatmap,heat_small);
-                   //  heatmap.recycle();
-                   Mat heat = new Mat(512,512,CvType.CV_32F);
-                   Imgproc.resize(heat_small,heat,new Size(512,512));
-                   //  heat_small.release();
+                   chech_grad.setChecked(false);
 
-                   Mat original_lung = new Mat(512,512, CvType.CV_32F);
-                   Utils.bitmapToMat(original,original_lung);
-                   // original.recycle();
-                   //  mask.release();
-
-                   Mat mixed = new Mat(512,512,CvType.CV_32F);
-                   Core.addWeighted(original_lung,1.2,heat,0.5,0,mixed);
-
-                 //  Mat sub = mixed.submat(coordinates[0],coordinates[2],coordinates[1],coordinates[3]);
-                   mixed_bit = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888);
-                   Utils.matToBitmap(mixed,mixed_bit);
-
-                   showmat.postDelayed(showit,1500);
                }
                dialog1.cancel();
            }
@@ -746,6 +683,11 @@ public class Saliency_Map extends AppCompatActivity {
         // array.subi(currMin);
         array.divi(currMax - currMin);
         return array;
+    }
+
+    public INDArray createMaskedInput(INDArray normalised){
+        INDArray input_image_ = Nd4j.create(input_image).reshape(new int[]{512,512});
+        return input_image_.mul(normalised);
     }
 
     public float predictOnMaskedImages(INDArray masked_input){
@@ -932,13 +874,8 @@ public class Saliency_Map extends AppCompatActivity {
         return probabilities.get(0);
     }
 
-    public INDArray createMaskedInput(INDArray normalised){
-        INDArray input_image_ = Nd4j.create(input_image).reshape(new int[]{512,512});
-        return input_image_.mul(normalised);
-    }
-
     public Bitmap generateHeatmap(float[] normalized){
-        int[] gradientColors = Gradients.GRADIENT_PLASMA;
+        int[] gradientColors = Gradients.GRADIENT_BLUE_TO_RED;
         Bitmap heatmap = Bitmap.createBitmap(16,16, Bitmap.Config.ARGB_8888);
 
         for (int row = 0; row < 16; row++) {
@@ -964,6 +901,92 @@ public class Saliency_Map extends AppCompatActivity {
         Imgproc.resize(small,big,new Size(512,512),0,0,Imgproc.INTER_AREA);
         Utils.matToBitmap(big,returning);
         return heatmap;
+    }
+
+    public void handleFurtherTask(){
+        label.setVisibility(View.VISIBLE);
+        bar.setVisibility(View.VISIBLE);
+        chech_grad.setVisibility(View.VISIBLE);
+        buttons.setVisibility(View.VISIBLE);
+        generate.setVisibility(View.GONE);
+
+    }
+
+    private void saveImage(){
+        if(ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED){
+            progressDialog.show();
+            try{
+                BitmapDrawable draw = (BitmapDrawable) saliency_imae.getDrawable();
+                Bitmap bitmap = draw.getBitmap();
+                File sdCard = Environment.getExternalStorageDirectory();
+                File dir = new File(sdCard.getAbsolutePath() + "/covct_heatmaps");
+                if(!dir.exists()){
+                    dir.mkdir();
+                }
+                new Handler().postDelayed(() -> {
+                    progressDialog.cancel();
+                    if(dir.exists()){
+                        try{
+                            String fileName1 = filename+".jpg";
+                            File outFile = new File(dir, fileName1);
+                            if (outFile.exists())
+                                outFile.delete();
+                            FileOutputStream outStream = new FileOutputStream(outFile);
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
+                            outStream.flush();
+                            outStream.close();
+                            Toast.makeText(Saliency_Map.this, "Saved at : "+dir.getAbsolutePath()+"/"+fileName1, Toast.LENGTH_LONG).show();
+                            Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                            intent.setData(Uri.fromFile(outFile));
+                            sendBroadcast(intent);
+                        }
+                        catch (Exception e){
+                            Toast.makeText(Saliency_Map.this, "in"+e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    else{
+                        Toast.makeText(Saliency_Map.this, "Please try again!", Toast.LENGTH_SHORT).show();
+                    }
+                },3000);
+            }
+            catch (Exception e){
+                if(progressDialog.isShowing()){
+                    progressDialog.cancel();
+                }
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+        }
+        else{
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},2011);
+        }
+    }
+
+    public void setHue(int hue){
+        Bitmap bmp32 = mixed_bit.copy(Bitmap.Config.ARGB_8888, true);
+        Mat mat = new Mat();
+        Mat hsv = new Mat();
+        Utils.bitmapToMat(bmp32, mat);
+        Imgproc.cvtColor(mat, hsv, Imgproc.COLOR_BGR2HSV);
+        List<Mat> hsvlist = new ArrayList<>();
+        Core.split(hsv,hsvlist);
+
+        Mat hue_channel = hsvlist.get(0);
+
+
+        Core.add(hue_channel,new Scalar(hue),hue_channel);
+
+
+        List<Mat> new_hsvlist = new ArrayList<>();
+        new_hsvlist.add(hue_channel);
+        new_hsvlist.add(hsvlist.get(1));
+        new_hsvlist.add(hsvlist.get(2));
+
+        Core.merge(new_hsvlist,mat);
+        Imgproc.cvtColor(mat,mat,Imgproc.COLOR_HSV2BGR);
+
+        Utils.matToBitmap(mat,bmp32);
+        saliency_imae.setImageBitmap(bmp32);
     }
 
     public class LoadInterpreters extends AsyncTask<Void, Void, Void>{

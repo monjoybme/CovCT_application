@@ -20,11 +20,14 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import org.apache.commons.io.FilenameUtils;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
@@ -35,7 +38,6 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.gpu.CompatibilityList;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,13 +50,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/*
+Code designed and Written by : ARYAN VERMA
+                               GSOC (Google Summer of Code 2021)
+Mail :                         aryanverma19oct@gmail.com
+*/
 public class Image_Upload extends AppCompatActivity {
 
     private Button predict,load, saliencymap_gen;
     private ImageView imageView;
     private TextView textView, inputText;
     private ProgressBar progressBar;
-    Bitmap bmp;
+    private Bitmap bmp;
     private String covid,noncovid;
     String TAG = "ImageUpload";
     ProgressDialog progressDialog;
@@ -63,6 +70,7 @@ public class Image_Upload extends AppCompatActivity {
     private Interpreter interpreter;
     private Interpreter.Options options;
     Uri uri;
+    String filename;
     int topx,topy,bottomy,bottomx;
 
     @Override
@@ -74,39 +82,35 @@ public class Image_Upload extends AppCompatActivity {
     }
 
     private void loadInitInterpreter(){
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try{
-                    options = new Interpreter.Options();
-                    CompatibilityList compatList = new CompatibilityList();
-                    options.setNumThreads(7);
+        Thread t = new Thread(() -> {
+            try{
+                options = new Interpreter.Options();
+                options.setNumThreads(7);
 
-                    try {
-                        InputStream inputStream = getAssets().open("accurate99.tflite");
-                        byte[] model = new byte[inputStream.available()];
-                        inputStream.read(model);
-                        ByteBuffer buffer = ByteBuffer.allocateDirect(model.length)
-                                .order(ByteOrder.nativeOrder());
-                        buffer.put(model);
-                        interpreter = new Interpreter(buffer,options);
-                        predict.setEnabled(true);
-                        Log.e(TAG,"Interpreter Initialised !");
-                        System.out.println("--------------"+interpreter.getInputTensorCount()+"");
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-
-                } catch (Exception ex){
-                    ex.printStackTrace();
+                try {
+                    InputStream inputStream = getAssets().open("accurate99.tflite");
+                    byte[] model = new byte[inputStream.available()];
+                    inputStream.read(model);
+                    ByteBuffer buffer = ByteBuffer.allocateDirect(model.length)
+                            .order(ByteOrder.nativeOrder());
+                    buffer.put(model);
+                    interpreter = new Interpreter(buffer,options);
+                    predict.setEnabled(true);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+
+
+            } catch (Exception ex){
+                ex.printStackTrace();
             }
         });
        t.start();
     }
 
     public void initViews(){
+
+        //All the views get initialized here
         predict = findViewById(R.id.inference_button);
         load = findViewById(R.id.upload_button);
         imageView = findViewById(R.id.uploaded_image);
@@ -122,91 +126,76 @@ public class Image_Upload extends AppCompatActivity {
         progressDialog.setCancelable(false);
 
         //On Click listener for the Load button
-        load.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if ((ContextCompat.checkSelfPermission(Image_Upload.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) || (ContextCompat.checkSelfPermission(Image_Upload.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
-                        ActivityCompat.requestPermissions(Image_Upload.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 99);
-                    } else {
-                        startActivityForResult(new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI), 999);
-                    }
-                }
-            });
+        load.setOnClickListener(view -> {
+            if ((ContextCompat.checkSelfPermission(Image_Upload.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) || (ContextCompat.checkSelfPermission(Image_Upload.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
+                ActivityCompat.requestPermissions(Image_Upload.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 99);
+            } else {
+                startActivityForResult(new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI), 999);
+            }
+        });
 
         //On Click Listenerfor the predict button
-        predict.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    imageView.invalidate();
-                    BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
-                    bmp = drawable.getBitmap();
+        predict.setOnClickListener(view -> {
+            imageView.invalidate();
+            BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
+            bmp = drawable.getBitmap();
 
-                    if(bmp==null){
-
-                        Toast.makeText(Image_Upload.this, "Please Upload Image !", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if(bmp.getWidth()==bmp.getHeight() ) {
-                        if(bmp.getHeight()==512){
-                            progressDialog.show();
-                            inputText.setVisibility(View.GONE);
-                            predict.setEnabled(false);
-                            load.setEnabled(false);
-                            load.setVisibility(View.INVISIBLE);
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-
-                                    separateLungs();
-                                }
-                            }, 300);
-                        }
-                        else{
-                            Toast.makeText(Image_Upload.this, "Image must be 512 X 512", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                    else{
-                        Toast.makeText(Image_Upload.this, "Image Not of Equal Dimensions !", Toast.LENGTH_LONG).show();
-                    }
+            if(bmp==null){
+                Toast.makeText(Image_Upload.this, "Please Upload Image !", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if(bmp.getWidth()==bmp.getHeight() ) {
+                if(bmp.getHeight()==512){
+                    progressDialog.show();
+                    inputText.setVisibility(View.GONE);
+                    predict.setEnabled(false);
+                    load.setEnabled(false);
+                    load.setVisibility(View.INVISIBLE);
+                    new Handler().postDelayed(() -> separateLungs(), 300);
                 }
-            });
+                else{
+                    Toast.makeText(Image_Upload.this, "Image must be 512 X 512", Toast.LENGTH_SHORT).show();
+                }
+            }
+            else{
+                Toast.makeText(Image_Upload.this, "Image Not of Equal Dimensions !", Toast.LENGTH_LONG).show();
+            }
+        });
 
         //On click listener for saliencymap button
-         saliencymap_gen.setOnClickListener(new View.OnClickListener() {
-             @Override
-             public void onClick(View view) {
-                 Intent intent = new Intent(Image_Upload.this,Saliency_Map.class );
-                 intent.putExtra("image",uri.toString());
+         saliencymap_gen.setOnClickListener(view -> {
+             Intent intent = new Intent(Image_Upload.this,Saliency_Map.class );
+             intent.putExtra("image",uri.toString());
 
-                 byte[] mask_buffer = new byte[512*512*(Integer.SIZE/Byte.SIZE)];
-                 if(mask!=null){
-                    try{
-                        mask.get(0,0,mask_buffer);
-                        File cah = Environment.getExternalStorageDirectory();
-                        File dir = new File(cah.getAbsolutePath()+"/covct/temp");
-                        if(!dir.exists()){
-                            dir.mkdirs();
-                        }
-                        File document = new File(dir,"mask.dat");
-                        if(document.exists()){
-                            document.delete();
-                        }
-                        FileOutputStream fos = new FileOutputStream(document.getPath());
-                        fos.write(mask_buffer);
-                        fos.close();
-                        intent.putExtra("mask",document.getPath());
-                        intent.putExtra("coordinates",new int[]{topx,topy,bottomx,bottomy});
-                        Log.d(TAG,"The file stored at : "+document.getPath());
+             byte[] mask_buffer = new byte[512*512*(Integer.SIZE/Byte.SIZE)];
+             if(mask!=null){
+                try{
+                    mask.get(0,0,mask_buffer);
+                    File cah = Environment.getExternalStorageDirectory();
+                    File dir = new File(cah.getAbsolutePath()+"/covct/temp");
+                    if(!dir.exists()){
+                        dir.mkdirs();
                     }
-                    catch (Exception e){
-                        e.printStackTrace();
+                    File document = new File(dir,"mask.dat");
+                    if(document.exists()){
+                        document.delete();
                     }
-                 }
-               //  intent.putExtra("image",bmp);
-
-                 startActivity(intent);
-                 finish();
+                    FileOutputStream fos = new FileOutputStream(document.getPath());
+                    fos.write(mask_buffer);
+                    fos.close();
+                    intent.putExtra("mask",document.getPath());
+                    intent.putExtra("coordinates",new int[]{topx,topy,bottomx,bottomy});
+                    intent.putExtra("filename",filename);
+                    Log.d(TAG,"The file stored at : "+document.getPath());
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
              }
+           //  intent.putExtra("image",bmp);
+
+             startActivity(intent);
+             finish();
          });
 
     }
@@ -249,89 +238,74 @@ public class Image_Upload extends AppCompatActivity {
                     }
                 }
                 if(contours_sorted.size()>=1){
-                    Thread t = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressDialog.cancel();
+                    Thread t = new Thread(() -> {
+                        progressDialog.cancel();
 
-                            //Display image with vacant contour
-                            // Mat lungs = Mat.zeros(new Size(512,512),CvType.CV_32S);
-                            Imgproc.drawContours(test_mat,contours_sorted,-1,new Scalar(0,255,0),3);
-                            Bitmap final_ = Bitmap.createBitmap(test_mat.cols(), test_mat.rows(), Bitmap.Config.ARGB_8888);
+                        //Display image with vacant contour
+                        // Mat lungs = Mat.zeros(new Size(512,512),CvType.CV_32S);
+                        Imgproc.drawContours(test_mat,contours_sorted,-1,new Scalar(0,255,0),3);
+                        Bitmap final_ = Bitmap.createBitmap(test_mat.cols(), test_mat.rows(), Bitmap.Config.ARGB_8888);
+                        Utils.matToBitmap(test_mat, final_);
+                       new Handler(Looper.getMainLooper()).post(() -> {
+                           Toast.makeText(Image_Upload.this, "Contours detected for lungs!", Toast.LENGTH_SHORT).show();
+                           imageView.setImageBitmap(final_);
+                       });
+
+                        //Display image with Filled contour
+
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            Imgproc.drawContours(test_mat,contours_sorted,-1,new Scalar(0,255,0),-1);
                             Utils.matToBitmap(test_mat, final_);
-                           new Handler(Looper.getMainLooper()).post(new Runnable() {
-                               @Override
-                               public void run() {
-                                   Toast.makeText(Image_Upload.this, "Contours detected for lungs!", Toast.LENGTH_SHORT).show();
-                                   imageView.setImageBitmap(final_);
-                               }
-                           });
+                            imageView.setImageBitmap(final_);
+                        },1000);
 
-                            //Display image with Filled contour
-
-                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Imgproc.drawContours(test_mat,contours_sorted,-1,new Scalar(0,255,0),-1);
-                                    Utils.matToBitmap(test_mat, final_);
-                                    imageView.setImageBitmap(final_);
-                                }
-                            },1000);
-
-                            //Segmenting the Lungs from the main image
-                            mask = Mat.zeros(new Size(512,512),CvType.CV_8U);
-                            Imgproc.drawContours(mask,contours_sorted,-1,new Scalar(255),-1);
-                            final Mat final_one = new Mat();
-                            test_mat_copy.copyTo(final_one,mask);
+                        //Segmenting the Lungs from the main image
+                        mask = Mat.zeros(new Size(512,512),CvType.CV_8U);
+                        Imgproc.drawContours(mask,contours_sorted,-1,new Scalar(255),-1);
+                        final Mat final_one = new Mat();
+                        test_mat_copy.copyTo(final_one,mask);
 
 
-                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if(!reached){
-                                        Utils.matToBitmap(final_one, final_);
-                                        Toast.makeText(Image_Upload.this, "Lungs Segmented Successfully !", Toast.LENGTH_SHORT).show();
-                                        imageView.setImageBitmap(final_);
-                                        progressDialog.setTitle("Generating Inference");
-                                        progressDialog.show();
-                                    }
-                                }
-                            },1700);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if(!reached){
+                                Utils.matToBitmap(final_one, final_);
+                                Toast.makeText(Image_Upload.this, "Lungs Segmented Successfully !", Toast.LENGTH_SHORT).show();
+                                imageView.setImageBitmap(final_);
+                                progressDialog.setTitle("Generating Inference");
+                                progressDialog.show();
+                            }
+                        },1700);
 
 
-                            //Now to enlarge the Cropped region of segmented lungs
-                            List<Integer> x = new ArrayList<>();
-                            List<Integer> y = new ArrayList<>();
+                        //Now to enlarge the Cropped region of segmented lungs
+                        List<Integer> x = new ArrayList<>();
+                        List<Integer> y = new ArrayList<>();
 
-                            for(int i=0;i<512;++i){
-                                for(int j=0;j<512;++j){
-                                    if(mask.get(i,j)[0]==255){
-                                        x.add(i);
-                                        y.add(j);
-                                    }
+                        for(int i=0;i<512;++i){
+                            for(int j=0;j<512;++j){
+                                if(mask.get(i,j)[0]==255){
+                                    x.add(i);
+                                    y.add(j);
                                 }
                             }
-
-                             topy = Collections.min(y);
-                             topx = Collections.min(x);
-                             bottomy = Collections.max(y);
-                             bottomx = Collections.max(x);
-
-                            Mat sub = final_one.submat(topx,bottomx,topy,bottomy);
-                            final Bitmap final_cropped = Bitmap.createBitmap(sub.cols(), sub.rows(), Bitmap.Config.ARGB_8888);
-                            Utils.matToBitmap(sub, final_cropped);
-                            Log.e(TAG,"Function came last");
-
-                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    reached=true;
-                                    imageView.setImageBitmap(final_cropped);
-                                    getInferenceNeuralNet(bmp);
-                                  //  progressDialog.cancel();
-                                }
-                            },1500);
                         }
+
+                         topy = Collections.min(y);
+                         topx = Collections.min(x);
+                         bottomy = Collections.max(y);
+                         bottomx = Collections.max(x);
+
+                        Mat sub = final_one.submat(topx,bottomx,topy,bottomy);
+                        final Bitmap final_cropped = Bitmap.createBitmap(sub.cols(), sub.rows(), Bitmap.Config.ARGB_8888);
+                        Utils.matToBitmap(sub, final_cropped);
+                        Log.e(TAG,"Function came last");
+
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            reached=true;
+                            imageView.setImageBitmap(final_cropped);
+                            getInferenceNeuralNet(bmp);
+                          //  progressDialog.cancel();
+                        },1500);
                     });
 t.start();
                 }
@@ -377,44 +351,41 @@ t.start();
             }
         };
 
-        Thread temp = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Bitmap bmp_test = bitmap.copy(Bitmap.Config.ARGB_8888, false);
-                Bitmap finaul = Bitmap.createScaledBitmap(bmp_test, 512, 512, true);
+        Thread temp = new Thread(() -> {
+            Bitmap bmp_test = bitmap.copy(Bitmap.Config.ARGB_8888, false);
+            Bitmap finaul = Bitmap.createScaledBitmap(bmp_test, 512, 512, true);
 
-                //Fitting the final bitmap to the model
-                ByteBuffer input = ByteBuffer.allocateDirect(4 * 512 * 512 * 1).order(ByteOrder.nativeOrder());
+            //Fitting the final bitmap to the model
+            ByteBuffer input = ByteBuffer.allocateDirect(4 * 512 * 512 ).order(ByteOrder.nativeOrder());
 
-                for (int y = 0; y < 512; y++) {
-                    for (int x = 0; x < 512; x++) {
-                        int px = finaul.getPixel(x, y);
+            for (int y = 0; y < 512; y++) {
+                for (int x = 0; x < 512; x++) {
+                    int px = finaul.getPixel(x, y);
 
-                        // Get channel values from the pixel value.
-                        float r_temp = Color.red(px);
+                    // Get channel values from the pixel value.
+                    float r_temp = Color.red(px);
 
-                        input.putFloat(r_temp);
-                    }
+                    input.putFloat(r_temp);
                 }
-                int bufferSize = 2 * java.lang.Float.SIZE / java.lang.Byte.SIZE;
-                ByteBuffer modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
-
-                //Finally running teh Inference of model
-                interpreter.run(input, modelOutput);
-                interpreter.close();
-                input.clear();
-                finaul.recycle();
-                bmp_test.recycle();
-
-                modelOutput.rewind();
-                FloatBuffer probabilities = modelOutput.asFloatBuffer();
-
-                modelOutput.clear();
-                probabilities.rewind();
-                covid = (probabilities.get(0)*100)+"";
-                noncovid = (probabilities.get(1)*100)+"";
-                j.post(r);
             }
+            int bufferSize = 2 * Float.SIZE / Byte.SIZE;
+            ByteBuffer modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
+
+            //Finally running teh Inference of model
+            interpreter.run(input, modelOutput);
+            interpreter.close();
+            input.clear();
+            finaul.recycle();
+            bmp_test.recycle();
+
+            modelOutput.rewind();
+            FloatBuffer probabilities = modelOutput.asFloatBuffer();
+
+            modelOutput.clear();
+            probabilities.rewind();
+            covid = (probabilities.get(0)*100)+"";
+            noncovid = (probabilities.get(1)*100)+"";
+            j.post(r);
         });
         temp.start();
     }
@@ -427,9 +398,22 @@ t.start();
            try {
                 uri = data.getData();
                imageView.setImageURI(uri);
+
+                String path = uri.getPath();
+               filename = FilenameUtils.getName(path);
+               if(filename!=null){
+                   int inn = filename.indexOf(".");
+                   if(inn>0){
+                       filename = filename.substring(0,inn);
+                   }
+                   else{
+                       filename = System.currentTimeMillis()+"";
+                   }
+               }
+
            }
            catch (Exception e){
-               Toast.makeText(this, "Problem While loading image !", Toast.LENGTH_SHORT).show();
+               Toast.makeText(this, "Problem While loading image !"+e.getMessage(), Toast.LENGTH_LONG).show();
            }
         }
     }
@@ -455,9 +439,7 @@ t.start();
     protected void onStart() {
         super.onStart();
         if(!OpenCVLoader.initDebug()){
-        }
-        else{
-            Log.e("FFF","OpenCV Loaded Successfully !!");
+            Toast.makeText(this, "Can't Initialized OpenCV Lib !", Toast.LENGTH_SHORT).show();
         }
     }
 

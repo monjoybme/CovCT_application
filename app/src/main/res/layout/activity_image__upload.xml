@@ -8,6 +8,10 @@
     android:background="@drawable/back_impression"
     android:gravity="center"
     tools:context=".Image_Upload">
+    <!-- Code designed and Written by : ARYAN VERMA
+                                       GSOC (Google Summer of Code 2021)
+        Mail :                         aryanverma19oct@gmail.com
+    -->
 
         <ImageView
             android:layout_width="300dp"

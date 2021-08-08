@@ -5,6 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+    <!-- Code designed and Written by : ARYAN VERMA
+                                       GSOC (Google Summer of Code 2021)
+        Mail :                         aryanverma19oct@gmail.com
+    -->
 
     <LinearLayout
         android:layout_width="fill_parent"
