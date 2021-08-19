@@ -1,4 +1,12 @@
-# CovCT_application
+# CovCT: An Android Application for COVID-19 & Non-COVID-19 Detection/Classification using Lung Computed Tomography Images
+
+[![GitHub stars](https://img.shields.io/github/stars/monjoybme/CovCT_application)](https://github.com/monjoybme/CovCT_application/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/monjoybme/CovCT_application)](https://github.com/monjoybme/CovCT_application/issues)
+[![GitHub forks](https://img.shields.io/github/forks/monjoybme/CovCT_application)](https://github.com/monjoybme/CovCT_application/network)
+![GitHub License](https://img.shields.io/github/license/monjoybme/CovCT_application)
+
+
+
 Chest CT scans has a potential role in the diagnosis and prognostication of COVID-19 and the designing of a portable and cost-effective diagnosis system capable of running on resource constrained devices like Android OS Phones would indeed improve the clinical utility of chest CT.
 
 <b>CovCT</b> is an android application developed as a <b>GSoC 2021</b> project to detect COVID-19 (CoronaVirus Disease 2019) from Chest CT Scan images. The application uses the power of 
