@@ -6,6 +6,12 @@
 ![GitHub License](https://img.shields.io/github/license/monjoybme/CovCT_application)
 
 
+# GSoC 2021
+![](https://camo.githubusercontent.com/32c909b8f61afb6f82fa821f35093f0df70fb28b227ac582709e98ed40ce315f/68747470733a2f2f646576656c6f706572732e676f6f676c652e636f6d2f6f70656e2d736f757263652f67736f632f7265736f75726365732f646f776e6c6f6164732f47536f432d6c6f676f2d686f72697a6f6e74616c2d3230302e706e67) 
+
+> Student : Aryan Verma
+
+ > Mentor : Monjoy Saha 
 
 Chest CT scans has a potential role in the diagnosis and prognostication of COVID-19 and the designing of a portable and cost-effective diagnosis system capable of running on resource constrained devices like Android OS Phones would indeed improve the clinical utility of chest CT.
 
