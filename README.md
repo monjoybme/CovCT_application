@@ -24,10 +24,10 @@ Deep Neural Networks to detect COVID-19 from Chest CT Scans and further generate
 <li>Generating the heatmaps indicating the regions of Covid-19 infection in the lungs.
 <li>Augmenting the heatmaps with Segmented lungs and saving. 
 </ol>
-<h4> The Video Demonstration for app in use can be seen <a href="https://github.com/monjoybme/CovCT_application/raw/main/Demostration%20and%20Results/demonstration.mp4">here</a></h4>
+<h4> The Video Demonstration for app in use can be seen <a href="https://github.com/monjoybme/CovCT_application/raw/main/Android%20demo%20and%20results/demonstration.mp4">here</a></h4>
 <h3>Results from CovCT Application:</h3>
 <p align="center">
-<img src="Demostration%20and%20Results/Image%20Results/Original%20Images/137covid_patient10_SR_3_IM00011.png" width="200" height="200" >   <img src="Demostration and Results/Image Results/Augmented Results/1628400535190.jpg" width="200">&nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/Image Results/Original Images/137covid_patient7_SR_3_IM00022.png" width="200" height="200" >   <img src="Demostration and Results/Image Results/Augmented Results/1628400864223.jpg" width="200"></p>
+<img src="Android%20demo%20and%20results/Image%20Results/Original%20Images/137covid_patient10_SR_3_IM00011.png" width="200" height="200" >   <img src="Android%20demo%20and%20results/Image Results/Augmented Results/1628400535190.jpg" width="200">&nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/Image Results/Original Images/137covid_patient7_SR_3_IM00022.png" width="200" height="200" >   <img src="Android%20demo%20and%20results/Image Results/Augmented Results/1628400864223.jpg" width="200"></p>
 <center<p>In both the samples, The left image is the CT image of the patient and on the right is the final processed output which shows the covid-19 affected region in the lung parenchyma.</p></center>
 <h2>Installation :</h2>
 <ul>
@@ -41,16 +41,16 @@ Deep Neural Networks to detect COVID-19 from Chest CT Scans and further generate
   <li>WRITE_EXTERNAL_STORAGE
   <li>READ_EXTERNAL_STORAGE</ul>
   Which are needed for getting the images from gallery and storing processed heatmaps into mobile phone storage.
-  <p align=center><img src="Demostration and Results/ScreenShots/1.jpg" width="200" height="350" >&nbsp&nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/ScreenShots/2.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/ScreenShots/3.jpg" width="200" height="350" >  </p>
+  <p align=center><img src="Android%20demo%20and%20results/ScreenShots/1.jpg" width="200" height="350" >&nbsp&nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/ScreenShots/2.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/ScreenShots/3.jpg" width="200" height="350" >  </p>
 <li>The third screen Renders <b>Home Page</b> of the application which shows option of Scrolling to the next fragment which is CT Scan loading Fragment.
   This Activity also contain <b>Splits</b> navigating to the <b>extra options</b> for sharing app, developer info and link to this github repo.
-  <p align=center><img src="Demostration and Results/ScreenShots/4.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/ScreenShots/5.jpg" width="200" height="350" >  </p>
+  <p align=center><img src="Android%20demo%20and%20results/ScreenShots/4.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/ScreenShots/5.jpg" width="200" height="350" >  </p>
   <li>The fifth screen gives us the option to <b>Load our CT Image from Phone Storage</b>. This acitivity checks for the size of image and type of image and throws error if images are of unequal dimensions. Following the Uploading of the image comes the further steps in the same activity :
-      <p align=center><img src="Demostration and Results/ScreenShots/6.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/ScreenShots/7.jpg" width="200" height="350" ></p>
+      <p align=center><img src="Android%20demo%20and%20results/ScreenShots/6.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/ScreenShots/7.jpg" width="200" height="350" ></p>
   <li>When user <b>Press "Predict" Button</b> the image is sent to <b>Segmentation Algorithm</b> which segments the lungs from the image. <b>After segmentation of the lungs, the deep learning inference is generated</b> and diplayed on the screen.
-    <p align=center><img src="Demostration and Results/ScreenShots/8.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/ScreenShots/9.jpg" width="200" height="350" ></p>
+    <p align=center><img src="Android%20demo%20and%20results/ScreenShots/8.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/ScreenShots/9.jpg" width="200" height="350" ></p>
     <li>The last screen appears after the inference resulted in more than 50% covid-19 prediction. Now <b>the image is passed to Heatmap Generation Algorithm</b> which is ScoreCAM. This step generates the heatmap and augments it on the lungs, after which <b>Using the trackbar and checkbox, heatmap gradient colour and mask of lungs can be adjusted</b> respectively. Further this modified and augmented image can be saved by one click.
-      <p align=center><img src="Demostration and Results/ScreenShots/10.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/ScreenShots/11.jpg" width="200" height="350" >&nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/ScreenShots/12.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp<img src="Demostration and Results/ScreenShots/13.jpg" width="200" height="350" ></p>
+      <p align=center><img src="Android%20demo%20and%20results/ScreenShots/10.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/ScreenShots/11.jpg" width="200" height="350" >&nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/ScreenShots/12.jpg" width="200" height="350" > &nbsp&nbsp&nbsp&nbsp<img src="Android%20demo%20and%20results/ScreenShots/13.jpg" width="200" height="350" ></p>
 
 # Technical stack
 <ul>
