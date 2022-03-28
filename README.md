@@ -1,4 +1,4 @@
-# CovCT: An Android Application for COVID-19 & Non-COVID-19 Detection/Classification using Lung Computed Tomography Images
+# CovCT: An Android Application for COVID-19 & Non-COVID-19 Detection/Classification using Lung Computed Tomography Images [Paper Link](https://www.sciencedirect.com/science/article/pii/S0010482522000907)
 
 [![GitHub stars](https://img.shields.io/github/stars/monjoybme/CovCT_application)](https://github.com/monjoybme/CovCT_application/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/monjoybme/CovCT_application)](https://github.com/monjoybme/CovCT_application/issues)
